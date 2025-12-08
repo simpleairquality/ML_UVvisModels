@@ -172,7 +172,7 @@ def load_scalers(path: str) -> Tuple[StandardScaler, StandardScaler]:
     :param path: Path where model checkpoint is saved.
     :return: A tuple with the data scaler and the features scaler.
     """
-    state = torch.load(path, map_location=lambda storage, loc: storage)
+    state = torch.load(path, map_location=lambda storage, loc: storage, weights_only=False)
 
     scaler = StandardScaler(means = state['data_scaler']['means'],
                             stds = state['data_scaler']['stds'],
@@ -191,7 +191,7 @@ def load_args(path: str) -> Namespace:
     :param path: Path where model checkpoint is saved.
     :return: The arguments Namespace that the model was trained with.
     """
-    return torch.load(path, map_location=lambda storage, loc: storage)['args']
+    return torch.load(path, map_location=lambda storage, loc: storage, weights_only=False)['args']
 
 
 def load_task_names(path: str) -> List[str]:

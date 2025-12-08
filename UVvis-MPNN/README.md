@@ -93,4 +93,9 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Then we can run:
+```bash
+python predict.py --test_path smiles.csv --features_path features.csv --structures_path /path/to/structures --checkpoint_dir models_3D_distance_plus_spectra --preds_path uv_preds.csv
+```
+
 

@@ -95,7 +95,9 @@ pip install -r requirements.txt
 
 Then we can run:
 ```bash
-python predict.py --test_path smiles.csv --features_path features.csv --structures_path /path/to/structures --checkpoint_dir models_3D_distance_plus_spectra --preds_path uv_preds.csv
+venv/bin/python3 predict.py --test_path ../../Data/UV_w_SMILES.csv --checkpoint_dir models_3D_distance_plus_spectra --preds_path uv_preds.csv
 ```
+
+Note that it would be nice to eventually be able to include the `--features-path` argument to improve the models, which is described further in this document.
 
 

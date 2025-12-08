@@ -78,3 +78,19 @@ python predict.py --test_path smiles.csv --features_path features.csv --structur
 ```
 
 Remember that this is only if you have pre-computed structures that are ideally DFT-optimized. In most cases, an `RDKit` 3D Conformer is good enough to get a reliable prediction.
+
+# Notes on Running/Reproducing
+
+We are working with the `3D_distance_plus_spectra` version to start.
+To begin, there is no requirements.txt file, so we have no idea what package versions this was run or trained with.
+So, we create our own.
+To get started,
+
+```bash
+cd 3D_distance_plus_spectra
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+

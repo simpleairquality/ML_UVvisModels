@@ -225,13 +225,12 @@ class MolGraph:
         
         
         # Convert smiles to molecule
-        reader = csv.DictReader(open('/qfs/projects/MulCME/Rajendra/darpa/MMPI_set3/TRAIN_TEST_VALIDATION/FULL_DATA/FULL_FULL/smiles_to_xyz.csv')) #mcna892 edit begin
+        reader = csv.DictReader(open('./smiles_to_xyz/smiles_to_xyz.csv')) #mcna892 edit begin
         xyz_map = next(reader) 
 #        print('pdb_dict: ',pdb_map)
         xyz_file = xyz_map.get(smiles)
         print('xyz_file: ',xyz_file)
-        xyz_path = '/qfs/projects/MulCME/Rajendra/darpa/MMPI_set3/TRAIN_TE\
-ST_VALIDATION/FULL_DATA/FULL_FULL/{0}'.format(xyz_file)
+        xyz_path = './smiles_to_xyz/{0}'.format(xyz_file)
         
         with open(xyz_path,'r') as f:
             lines = f.read()

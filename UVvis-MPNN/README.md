@@ -93,6 +93,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Next we need a `smiles_to_xyz.csv` file as well as the corresponding data files.
+[In their code](https://github.com/simpleairquality/ML_UVvisModels/blob/main/UVvis-MPNN/3D_distance_plus_spectra/chemprop/features/featurization.py#L228), they have hard-coded the paths to these files to something unique to the person who wrote the code.
+We have modified this to default everything into the `./smiles_to_xyz/` directory, with the CSV file defaulting to `./smiles_to_xyz/smiles_to_xyz.csv`.
+TODO:  How to populate this
+
 Then we can run:
 ```bash
 venv/bin/python3 predict.py --test_path ../../Data/UV_w_SMILES.csv --checkpoint_dir models_3D_distance_plus_spectra --preds_path uv_preds.csv

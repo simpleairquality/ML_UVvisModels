@@ -96,7 +96,47 @@ pip install -r requirements.txt
 Next we need a `smiles_to_xyz.csv` file as well as the corresponding data files.
 [In their code](https://github.com/simpleairquality/ML_UVvisModels/blob/main/UVvis-MPNN/3D_distance_plus_spectra/chemprop/features/featurization.py#L228), they have hard-coded the paths to these files to something unique to the person who wrote the code.
 We have modified this to default everything into the `./smiles_to_xyz/` directory, with the CSV file defaulting to `./smiles_to_xyz/smiles_to_xyz.csv`.
-TODO:  How to populate this
+
+It looks like these may be generated with an external tool, [smi2xyz](https://github.com/hoelzerC/smi2xyz/).
+To generate this, separately clone into that repo and set it up using their instructions.
+
+It doesn't look like they include a CLI tool to process or output results.
+TODO:  We'll probably have to make our own script to do that.
+       Maybe the answer is to make one here and include smi2xyz as a dependency for our purposes.
+
+TODO:  What's the correct output format?  It looks like whatever format must be compatible with:
+       `mol = Chem.MolFromPDBBlock(xyz_to_pdb_block(lines), removeHs=False)`
+       It looks to me like it might just be four space-separated numbers per line, which is consistent with simply the rows from the tensor output by smi2xyz.
+
+```
+def xyz_to_pdb_block(xyz_block):
+    pdb_block = ''
+    n = 0
+    n_atoms = 0
+    with StringIO(xyz_block) as hnd:
+        while True:
+            line = hnd.readline()
+            if (not line):
+                raise RuntimeError('XYZ block ended prematurely')
+            n += 1
+            if (n == 1):
+                try:
+                    n_atoms = int(line.strip())
+                except Exception as e:
+                    raise type(e)('Could not parse number of atoms on line {0:d}'.format(n)) from e
+            elif (n > 2):
+                try: 
+                    elem, x, y, z = line.strip().split()
+                except Exception as e:
+                    raise type(e)('Could not parse coordinate line {0:d}'.format(n)) from e
+                pdb_block += 'ATOM  {0:5d} {1:>2s}   UNL     1    {2:8.3f}{3:8.3f}{4:8.3f}  1.00  0.00\n'.format(
+                    n - 2, elem, float(x), float(y), float(z))
+                if (n == n_atoms + 2):
+                    break
+    return pdb_block
+```
+
+TODO:  Continue...
 
 Then we can run:
 ```bash

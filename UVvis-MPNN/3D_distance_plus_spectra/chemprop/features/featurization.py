@@ -174,7 +174,7 @@ def xyz_to_pdb_block(xyz_block):
         while True:
             line = hnd.readline()
             if (not line):
-                raise RuntimeError('XYZ block ended prematurely')
+                raise RuntimeError('XYZ block ended prematurely (expected {} rows plus header plus dummy, currently {})'.format(n_atoms, n))
             n += 1
             if (n == 1):
                 try:
@@ -182,6 +182,8 @@ def xyz_to_pdb_block(xyz_block):
                 except Exception as e:
                     raise type(e)('Could not parse number of atoms on line {0:d}'.format(n)) from e
             elif (n > 2):
+                print("READING LINE {}".format(n))
+                print(str(line))
                 try:
                     elem, x, y, z = line.strip().split()
                 except Exception as e:
@@ -225,9 +227,12 @@ class MolGraph:
         
         
         # Convert smiles to molecule
-        reader = csv.DictReader(open('./smiles_to_xyz/smiles_to_xyz.csv')) #mcna892 edit begin
-        xyz_map = next(reader) 
-#        print('pdb_dict: ',pdb_map)
+        # 1. Create the lookup dictionary by iterating through the whole file
+        with open('./smiles_to_xyz/smiles_to_xyz.csv', mode='r', encoding='utf-8') as f:
+          reader = csv.reader(f)
+          # Create a dict: {smile: filename}
+          xyz_map = {row[0]: row[1] for row in reader if row}
+
         xyz_file = xyz_map.get(smiles)
         print('xyz_file: ',xyz_file)
         xyz_path = './smiles_to_xyz/{0}'.format(xyz_file)

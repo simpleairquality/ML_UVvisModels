@@ -100,43 +100,19 @@ We have modified this to default everything into the `./smiles_to_xyz/` director
 It looks like these may be generated with an external tool, [smi2xyz](https://github.com/hoelzerC/smi2xyz/).
 To generate this, separately clone into that repo and set it up using their instructions.
 
-It doesn't look like they include a CLI tool to process or output results.
-TODO:  We'll probably have to make our own script to do that.
-       Maybe the answer is to make one here and include smi2xyz as a dependency for our purposes.
+Note that `smi2xyz` is not a packge of any kind, so we merely coped the source into the `3D_distance_plus_spectra` directory.
 
-TODO:  What's the correct output format?  It looks like whatever format must be compatible with:
-       `mol = Chem.MolFromPDBBlock(xyz_to_pdb_block(lines), removeHs=False)`
-       It looks to me like it might just be four space-separated numbers per line, which is consistent with simply the rows from the tensor output by smi2xyz.
-
+Then we made our own tool, which you can use like this:
 ```
-def xyz_to_pdb_block(xyz_block):
-    pdb_block = ''
-    n = 0
-    n_atoms = 0
-    with StringIO(xyz_block) as hnd:
-        while True:
-            line = hnd.readline()
-            if (not line):
-                raise RuntimeError('XYZ block ended prematurely')
-            n += 1
-            if (n == 1):
-                try:
-                    n_atoms = int(line.strip())
-                except Exception as e:
-                    raise type(e)('Could not parse number of atoms on line {0:d}'.format(n)) from e
-            elif (n > 2):
-                try: 
-                    elem, x, y, z = line.strip().split()
-                except Exception as e:
-                    raise type(e)('Could not parse coordinate line {0:d}'.format(n)) from e
-                pdb_block += 'ATOM  {0:5d} {1:>2s}   UNL     1    {2:8.3f}{3:8.3f}{4:8.3f}  1.00  0.00\n'.format(
-                    n - 2, elem, float(x), float(y), float(z))
-                if (n == n_atoms + 2):
-                    break
-    return pdb_block
+cat ../../Data/UV_w_SMILES.csv | python smiles_to_xyz.py ./smiles_to_xyz/
 ```
 
-TODO:  Continue...
+TODO:  We now seem to be loading the files correctly (maybe?), but we're getting an error:
+```
+  File "/mnt/synology/code/ML_UVvisModels/UVvis-MPNN/3D_distance_plus_spectra/chemprop/features/featurization.py", line 255, in __init__
+    ) for i, a in enumerate(mol.GetAtoms())])))[1]
+```
+My suspicion is that the real issue is tied to this output:  `[16:04:14] Cannot determine element for PDB atom #1` 
 
 Then we can run:
 ```bash

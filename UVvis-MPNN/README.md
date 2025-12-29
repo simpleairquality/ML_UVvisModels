@@ -107,13 +107,6 @@ Then we made our own tool, which you can use like this:
 cat ../../Data/UV_w_SMILES.csv | python smiles_to_xyz.py ./smiles_to_xyz/
 ```
 
-TODO:  We now seem to be loading the files correctly (maybe?), but we're getting an error:
-```
-  File "/mnt/synology/code/ML_UVvisModels/UVvis-MPNN/3D_distance_plus_spectra/chemprop/features/featurization.py", line 255, in __init__
-    ) for i, a in enumerate(mol.GetAtoms())])))[1]
-```
-My suspicion is that the real issue is tied to this output:  `[16:04:14] Cannot determine element for PDB atom #1` 
-
 Then we can run:
 ```bash
 venv/bin/python3 predict.py --test_path ../../Data/UV_w_SMILES.csv --checkpoint_dir models_3D_distance_plus_spectra --preds_path uv_preds.csv
@@ -121,4 +114,24 @@ venv/bin/python3 predict.py --test_path ../../Data/UV_w_SMILES.csv --checkpoint_
 
 Note that it would be nice to eventually be able to include the `--features-path` argument to improve the models, which is described further in this document.
 
+After some additional work, we have found that the pretrained models for `3D_distance_plus_spectra` are missing multiple critical data files, `/UV_chemprop_Data_both_DFT_expt.csvv` (sic) and `DFT_spectra_feature_chemprop.csv`.
+Lacking these files, this path is dead in the water, but we can fall back to the `3D_only`, and apply many of these lessons.
 
+Let's proceed like that.
+
+```bash
+cd 3D_only
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Follow the instructions as before to create the `smiles_to_xyz` data, and put it in the `3D_only` directory.
+
+Now:
+
+```bash
+venv/bin/python3 predict.py --test_path ../../Data/UV_w_SMILES.csv --checkpoint_dir models_3D_only --preds_path uv_preds.csv
+```
+
+And we get results in `uv_preds.csv` of the same directory!

@@ -143,7 +143,7 @@ def dijkstra_distance(bonds: List[List[int]]) -> np.ndarray:
         full graph distance matrix
     """
     nb_atom = max(itertools.chain(*bonds)) + 1
-    graph_dist = np.ones((nb_atom, nb_atom), dtype=np.int32) * np.infty
+    graph_dist = np.ones((nb_atom, nb_atom), dtype=np.int32) * np.inf
     print(len(graph_dist))
     for bond in bonds:
         graph_dist[bond[0], bond[1]] = 1

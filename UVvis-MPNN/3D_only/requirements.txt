@@ -1,0 +1,6 @@
+numpy==2.3.5
+torch==2.9.1
+rdkit==2025.9.3
+tqdm==4.67.1
+tensorboardX==2.6.4
+scikit-learn==1.7.2

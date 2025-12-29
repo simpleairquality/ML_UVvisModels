@@ -7,6 +7,7 @@ from multiprocessing import Pool
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from rdkit.Chem import rdDetermineBonds
 from io import StringIO
 import torch
 import numpy as np
@@ -142,7 +143,7 @@ def dijkstra_distance(bonds: List[List[int]]) -> np.ndarray:
         full graph distance matrix
     """
     nb_atom = max(itertools.chain(*bonds)) + 1
-    graph_dist = np.ones((nb_atom, nb_atom), dtype=np.int32) * np.infty
+    graph_dist = np.ones((nb_atom, nb_atom), dtype=np.int32) * np.inf
     print(len(graph_dist))
     for bond in bonds:
         graph_dist[bond[0], bond[1]] = 1
@@ -194,6 +195,54 @@ def xyz_to_pdb_block(xyz_block):
                     break
     return pdb_block
 
+def fix_pdb_block(pdb_text):
+    """
+    Convert PDB block with atomic numbers as atom names to proper PDB format.
+    """
+    lines = pdb_text.strip().split('\n')
+    fixed_lines = []
+    
+    # Mapping of atomic numbers to element symbols
+    atomic_num_to_symbol = {
+        1: 'H', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 
+        15: 'P', 16: 'S', 17: 'Cl', 35: 'Br', 53: 'I'
+    }
+    
+    # Counter for each element type
+    element_counts = {}
+    
+    for line in lines:
+        if line.startswith('ATOM'):
+            # Extract atomic number from columns 13-16
+            atomic_num_str = line[12:16].strip()
+            try:
+                atomic_num = int(atomic_num_str)
+                element = atomic_num_to_symbol.get(atomic_num, 'X')
+                
+                # Generate atom name (e.g., C1, C2, N1, etc.)
+                element_counts[element] = element_counts.get(element, 0) + 1
+                atom_name = f"{element}{element_counts[element]}"
+                
+                # Reconstruct line ensuring proper column alignment
+                # PDB format: element symbol should be at columns 77-78 (0-indexed: 76-77)
+                fixed_line = (
+                    line[:12] +                    # ATOM + serial number (cols 1-12)
+                    f" {atom_name:<3}" +           # Atom name (cols 13-16, left-aligned with leading space)
+                    line[16:66]                    # Everything through B-factor (cols 17-66)
+                )
+                # Pad to column 76, then add element symbol
+                fixed_line = fixed_line.ljust(76) + f"{element:>2}"
+                
+                fixed_lines.append(fixed_line)
+            except ValueError:
+                # If it's not a number, keep the line as is
+                fixed_lines.append(line)
+        else:
+            fixed_lines.append(line)
+    
+    return '\n'.join(fixed_lines)
+
+
 class MolGraph:
     """
     A MolGraph represents the graph structure and featurization of a single molecule.
@@ -240,7 +289,11 @@ class MolGraph:
         with open(xyz_path,'r') as f:
             lines = f.read()
 
-        mol = Chem.MolFromPDBBlock(xyz_to_pdb_block(lines), removeHs=False)
+
+
+        print(fix_pdb_block(xyz_to_pdb_block(lines.strip())))
+
+        mol = Chem.MolFromPDBBlock(fix_pdb_block(xyz_to_pdb_block(lines.strip())), removeHs=False)
 
         print('Loaded xyz File') # end mcna892 edit
         print(mol)
@@ -248,25 +301,52 @@ class MolGraph:
 #        AllChem.EmbedMolecule(test_mol) # mcna892 removed in case this is recalculating coords
 # RJ
 ### BEGIN MCNA892 EDIT
-        order_by_atomic_num = tuple(zip(*sorted(
-            [(a.GetIdx() if a.GetAtomicNum() > 1 else a.GetIdx() + mol.GetNumAtoms(), i
-          ) for i, a in enumerate(mol.GetAtoms())])))[1]
+#        order_by_atomic_num = tuple(zip(*sorted(
+#            [(a.GetIdx() if a.GetAtomicNum() > 1 else a.GetIdx() + mol.GetNumAtoms(), i
+#          ) for i, a in enumerate(mol.GetAtoms())])))[1]
 
-        mol = AllChem.RenumberAtoms(mol, order_by_atomic_num)
-        
+#        mol = AllChem.RenumberAtoms(mol, order_by_atomic_num)
+
+        print(smiles)
         smiles_mol = Chem.MolFromSmiles(smiles)
+        print(smiles_mol)
 
-        xyz_mol_no_h = AllChem.AssignBondOrdersFromTemplate(smiles_mol, Chem.RemoveHs(mol))
+        # Alternative approach: Use SMILES connectivity, just transfer 3D coordinates
+        # Create a copy of the SMILES molecule with hydrogens
+        template_with_h = Chem.AddHs(smiles_mol)
 
+        # Embed to get a conformer (we'll replace coordinates)
+        AllChem.EmbedMolecule(template_with_h, randomSeed=42)
+
+        # Check atom counts match
+        if mol.GetNumAtoms() != template_with_h.GetNumAtoms():
+            raise ValueError(f"Atom count mismatch: PDB has {mol.GetNumAtoms()} atoms, template has {template_with_h.GetNumAtoms()} atoms")
+
+        # Transfer the 3D coordinates from PDB to template
+        pdb_conf = mol.GetConformer()
+        template_conf = template_with_h.GetConformer()
+
+        for i in range(mol.GetNumAtoms()):
+            pos = pdb_conf.GetAtomPosition(i)
+            template_conf.SetAtomPosition(i, pos)
+
+        # Now we have a molecule with correct bonds (from SMILES) and correct 3D coords (from PDB)
+        mol = template_with_h
+
+        print(f"Final molecule: {mol.GetNumAtoms()} atoms, {mol.GetNumBonds()} bonds")
+        print(f"SMILES: {Chem.MolToSmiles(Chem.RemoveHs(mol))}")
+
+        # Sanitize to ensure everything is consistent
+        Chem.SanitizeMol(mol)
+
+        xyz_mol_no_h = Chem.RemoveHs(mol)
         xyz_mol_bo = Chem.RWMol(xyz_mol_no_h)
 
         for a in mol.GetAtoms():
             if (a.GetAtomicNum() == 1):
                 xyz_mol_bo.AddAtom(a)
-
         mol_conf = mol.GetConformer()
         mol_bo_conf = xyz_mol_bo.GetConformer()
-        
         for b in mol.GetBonds():
             if (b.GetBeginAtom().GetAtomicNum() == 1):
                 hydro = b.GetBeginAtom()
@@ -281,8 +361,17 @@ class MolGraph:
             heavy.SetNumExplicitHs(0)
             xyz_mol_bo.AddBond(heavy_idx, hydro_idx, Chem.BondType.SINGLE)
             mol_bo_conf.SetAtomPosition(hydro_idx, mol_conf.GetAtomPosition(hydro_idx))
-            
-        mol = xyz_mol_bo
+        
+        # CRITICAL: Update molecule properties after manual modifications
+        mol = xyz_mol_bo.GetMol()  # Convert RWMol to Mol
+        
+        # Update implicit valences and other computed properties
+        for atom in mol.GetAtoms():
+            atom.UpdatePropertyCache()
+        
+        # Alternative: Full sanitization (but preserve 3D coordinates)
+        # Chem.SanitizeMol(mol)
+        
 ### END MCNA892 EDIT        
         conf = mol.GetConformer()
 

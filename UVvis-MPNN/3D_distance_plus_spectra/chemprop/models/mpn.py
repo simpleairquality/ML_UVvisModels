@@ -19,6 +19,9 @@ class MPNEncoder(nn.Module):
         :param atom_fdim: Atom features dimension.
         :param bond_fdim: Bond features dimension.
         """
+        print(args)
+        # TODO:  DIFFICULTY.
+        # Apparently we're loading args from the pretrained models, but not all of the needed data files / CSVs are included.
         super(MPNEncoder, self).__init__()
         self.atom_fdim = atom_fdim
         self.bond_fdim = bond_fdim

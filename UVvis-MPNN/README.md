@@ -135,3 +135,28 @@ venv/bin/python3 predict.py --test_path ../../Data/UV_w_SMILES.csv --checkpoint_
 ```
 
 And we get results in `uv_preds.csv` of the same directory!
+Now, as they say, let's try `spectra_scaling`.
+
+```bash
+venv/bin/python ../spectra_scaling.py uv_preds.csv
+```
+
+outputs `scaled_spectra.csv`
+
+Two things stand out.
+1)  These normalized spectra can't be simple absorbances.  These must be relative to the other computed absorbances, so they will have to be calibrated to real, known spectra.
+2)  What units are the header in?  Microns I guess?  But, it's odd that you would choose microns as a feature for something that's usually in nanometers.
+
+Running a slightly modified `plot.py`, 
+
+```bash
+venv/bin/python plot.py
+```
+
+I think reveals what was intended by the header, which is deeply confusing but at least clarified here.
+0 is like 210nm, and 1 is 400nm.  
+
+I wonder how well this agrees with a real absorbance spectrum.  
+Let's try our best buddy forever, Styrene.
+
+

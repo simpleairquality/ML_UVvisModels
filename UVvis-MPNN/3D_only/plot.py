@@ -2,7 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-data = open('scaled_spectra.csv', 'r')
+data = open('trash', 'r')
 
 x = np.arange(220, 401)
 

@@ -126,8 +126,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Follow the instructions as before to create the `smiles_to_xyz` data, and put it in the `3D_only` directory.
-
 Now:
 
 ```bash

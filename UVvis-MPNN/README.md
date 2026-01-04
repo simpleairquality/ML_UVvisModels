@@ -154,7 +154,16 @@ venv/bin/python plot.py
 I think reveals what was intended by the header, which is deeply confusing but at least clarified here.
 0 is like 210nm, and 1 is 400nm.  
 
-I wonder how well this agrees with a real absorbance spectrum.  
-Let's try our best buddy forever, Styrene.
+OK, let's run the prediction against real compounds that we have UV/Vis spectra for from NIST.
+First, get the list with:
 
+```bash
+venv/bin/python get_nist_with_uv.py -o smiles.dat
+```
+
+Next, run predictions with:
+
+```bash
+venv/bin/python3 predict.py --test_path smiles.dat --checkpoint_dir models_3D_only --preds_path nist_smiles_preds.csv
+```
 

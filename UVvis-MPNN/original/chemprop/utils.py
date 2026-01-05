@@ -83,7 +83,7 @@ def load_checkpoint(path: str,
     debug = logger.debug if logger is not None else print
 
     # Load model and args
-    state = torch.load(path, map_location=lambda storage, loc: storage)
+    state = torch.load(path, map_location=lambda storage, loc: storage, weights_only=False)
     args, loaded_state_dict = state['args'], state['state_dict']
 
     if current_args is not None:

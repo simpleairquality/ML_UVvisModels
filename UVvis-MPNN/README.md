@@ -167,3 +167,15 @@ Next, run predictions with:
 venv/bin/python3 predict.py --test_path smiles.dat --checkpoint_dir models_3D_only --preds_path nist_smiles_preds.csv
 ```
 
+Now we need to scale the spectra:
+```bash
+venv/bin/python ../spectra_scaling.py nist_smiles_preds.csv
+```
+
+And we can now compare the results to data with:
+```bash
+venv/bin/python compare_results_to_data.py scaled_spectra.csv 
+```
+
+The results... aren't great.
+See comparison plots in the newly-generated `comparison_plots` directory.

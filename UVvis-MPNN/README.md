@@ -179,3 +179,18 @@ venv/bin/python compare_results_to_data.py scaled_spectra.csv
 
 The results... aren't great.
 See comparison plots in the newly-generated `comparison_plots` directory.
+
+But maybe the problem is that we don't actually have 3D structures for these SMILEs.  
+`chemprop/features/featurization.py` there is using RDkit's 3D structure per SMILE if none is provided in the `structures` directory.
+So, ours is going SMILE to 3D Structure (RDKit) to AI. 
+Maybe that's why this is so bad.
+
+Let's try the AI trained on SMILE strings.
+
+Except... they didn't include this pretrained model!
+So we have to do it ourselves.
+
+In the `original` directory:
+```bash
+python train.py --data_path ../../Data/UV_w_SMILES.csv --dataset_type spectra --save_dir checkpoints --epochs 4000
+```

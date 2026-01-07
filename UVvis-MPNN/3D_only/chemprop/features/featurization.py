@@ -279,7 +279,6 @@ class MolGraph:
             mol_no_h = Chem.MolFromSmiles(smiles)
             mol = Chem.AddHs(mol_no_h)
             AllChem.EmbedMolecule(mol)
-
         conf = mol.GetConformer()
 
         gaus_dist = np.linspace(0, 4, 10)

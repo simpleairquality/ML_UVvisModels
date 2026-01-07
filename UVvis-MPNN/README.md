@@ -194,3 +194,20 @@ In the `original` directory:
 ```bash
 python train.py --data_path ../../Data/UV_w_SMILES.csv --dataset_type spectra --save_dir checkpoints --epochs 4000
 ```
+
+Then we can predict with:
+```bash
+python predict.py --test_path smiles.dat --preds_path predictions.dat --checkpoint_path checkpoints/fold_0/model_0/model.pt
+```
+
+Scale spectra with:
+```bash
+python ../3D_only/spectra_scaling.py predictions.dat
+```
+
+And compare with:
+```bash
+python ../3D_only/compare_results_to_data.py scaled_spectra.csv
+```
+
+These results are bad too!
